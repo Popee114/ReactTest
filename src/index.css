@@ -19,6 +19,16 @@ table{
     border-bottom: 2px solid;
 }
 
+.treeData{
+    background-color: darkgrey;
+    height: 400px;
+    padding: 0;
+}
+
+.name{
+    height: 400px;
+}
+
 .underRow{
     height: 50px;
     border-top: 2px solid;
@@ -26,4 +36,8 @@ table{
 
 .underRowData{
     text-align: center;
+}
+
+p{
+    margin: 0;
 }
