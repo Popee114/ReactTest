@@ -53,8 +53,10 @@ class Panel extends React.Component {
     showNodes = () =>
         this.state.arrayNodes.map((el, index) => {
             return (
-                <div style={{marginLeft: 5 * this.state.arrayNodes.indexOf(el)}} key={index} onClick={this.stopPropagation}>
-                    <p key={index}> {el} </p>
+                <div style={{ marginLeft: 5 * this.state.arrayNodes.indexOf(el) }} key={index} onClick={this.stopPropagation}>
+                    <p key={index} onClick={() => {
+                        this.state.selectedItem = this.state.arrayNodes.indexOf(el);
+                    }}> {el} </p>
                 </div>)
         });
 
