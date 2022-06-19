@@ -6,14 +6,19 @@ class Panel extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            jsonNodes: [{
+                'Node1': [{
+                    'Node2': [{}]
+                }],
+                'Node3': [{}]
+            }],
             arrayNodes: [],
-            selectedItem: null
+            selectedItem: null,
+            divMarginLeft: { marginLeft: "5px" }
         };
     }
 
-    stopPropagation(event) {
-        event.stopPropagation();
-    }
+    stopPropagation = (event) => event.stopPropagation();
 
     handleClick(i, action) {
         const arrayNodes = this.state.arrayNodes.slice();
@@ -45,18 +50,13 @@ class Panel extends React.Component {
         });
     }
 
-    showNodes() {
-        const arrayNodes = this.state.arrayNodes.map((el, index) => {
+    showNodes = () =>
+        this.state.arrayNodes.map((el, index) => {
             return (
-                <div key={index} onClick={this.stopPropagation}>
-                    <p key={index} onClick={() => {
-                        this.state.selectedItem = this.state.arrayNodes.indexOf(el);
-                    }}> {el} </p>
+                <div style={{marginLeft: 5 * this.state.arrayNodes.indexOf(el)}} key={index} onClick={this.stopPropagation}>
+                    <p key={index}> {el} </p>
                 </div>)
         });
-
-        return arrayNodes;
-    };
 
     editArrayNodes(action) {
         var nextNum = this.state.arrayNodes.length;
