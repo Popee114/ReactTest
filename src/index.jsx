@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Children } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 
@@ -7,62 +7,150 @@ class Panel extends React.Component {
         super(props);
         this.state = {
             jsonNodes: [{
-                'Node1': [{
-                    'Node2': [{}]
-                }],
-                'Node3': [{}]
+                id: 1,
+                name: 'Node1',
+                nodes: [
+                    {
+                        id: 2,
+                        name: 'Node2',
+                        nodes: [
+                            {
+                                id: 5,
+                                name: 'Node5',
+                                nodes: null,
+                            }],
+                    }, {
+                        id: 4,
+                        name: 'Node4',
+                        nodes: null,
+                    }],
+            },
+            {
+                id: 3,
+                name: 'Node3',
+                nodes: null,
             }],
-            arrayNodes: [],
-            selectedItem: null,
-            divMarginLeft: { marginLeft: "5px" }
+            selectedItem: null
         };
     }
 
-    stopPropagation = (event) => event.stopPropagation();
-
-    handleClick(i, action) {
-        const arrayNodes = this.state.arrayNodes.slice();
+    handleClick(action) {
+        var jsonNodes = this.state.jsonNodes.slice();
         switch (action) {
             case 'add':
-                if (i == 0) {
-                    arrayNodes[1] = `Node${i + 1}`;
-                    arrayNodes.splice(0, 1);
-                }
-                else arrayNodes[i] = `Node${i + 1}`;
+                this.addSelectedNode(jsonNodes);
                 break;
             case 'remove':
-                if (this.state.selectedItem != null) {
-                    arrayNodes.splice(this.state.selectedItem, 1);
-                    this.state.selectedItem = null;
-                }
+                this.deleteSelectedNode(jsonNodes);
+                this.state.selectedItem = null;
                 break;
             case 'edit':
-                const newText = prompt('Enter new name', `Node${i + 1}`);
-                arrayNodes[this.state.selectedItem] = newText;
+                const newText = prompt('Enter new name', `Node`);
+                this.editSelectedNode(jsonNodes, newText);
                 break;
             case 'reset':
-                arrayNodes.splice(0, arrayNodes.length);
+                jsonNodes = [];
                 this.state.selectedItem = null;
                 break;
         }
         this.setState({
-            arrayNodes: arrayNodes
+            jsonNodes: jsonNodes
         });
     }
 
-    showNodes = () =>
-        this.state.arrayNodes.map((el, index) => {
-            return (
-                <div style={{ marginLeft: 5 * this.state.arrayNodes.indexOf(el) }} key={index} onClick={this.stopPropagation}>
-                    <p key={index} onClick={() => {
-                        this.state.selectedItem = this.state.arrayNodes.indexOf(el);
-                    }}> {el} </p>
-                </div>)
+    addSelectedNode(nodes) {
+        var arrIds = [];
+        this.getArrayIds(nodes, arrIds)
+
+        if (this.state.selectedItem == null){
+            nodes = this.pushNode(nodes, arrIds);
+            return;
+        }
+
+        for (var element of nodes) {
+            if (element.id == this.state.selectedItem) {
+                element.nodes = this.pushNode(element.nodes, arrIds);
+            }
+            if (element.nodes) {
+                this.addSelectedNode(element.nodes);
+            }
+        }
+    }
+
+    deleteSelectedNode(nodes) {
+        for (var element of nodes) {
+            if (element.id == this.state.selectedItem) {
+                const index = nodes.indexOf(element);
+                delete nodes[index];
+                return;
+            }
+
+            if (element.nodes) {
+                this.deleteSelectedNode(element.nodes);
+            }
+        }
+    }
+
+    editSelectedNode(nodes, name) {
+        for (var element of nodes) {
+            if (element.id == this.state.selectedItem)
+                element.name = name;
+
+            if (element.nodes) {
+                this.editSelectedNode(element.nodes, name);
+            }
+        }
+    }
+
+    pushNode(nodes, arrIds) {
+        const newId = this.generateId(arrIds);
+        const locNodes = nodes ?? [];
+        locNodes.push({
+            id: newId,
+            name: `Node${newId}`,
+            node: null
+        });
+        nodes = locNodes;
+        return nodes;
+    }
+
+    getSelectedNode(nodes) {
+        for (const element of nodes) {
+            if (element.id == this.state.selectedItem)
+                return element;
+
+            if (element.nodes) {
+                const node = this.getSelectedNode(element.nodes);
+                if (node) return node;
+            }
+        }
+        return null
+    }
+
+    showNodes(nodes) {
+        if (nodes.length == 0) return null;
+        const result = nodes?.map(element => {
+            return <li key={element.id} onClick={(event) => { this.state.selectedItem = element.id; event.stopPropagation(); }}>
+                {element.name}
+                {element.nodes == null ? null : this.showNodes(element.nodes)}
+            </li>
         });
 
-    editArrayNodes(action) {
-        var nextNum = this.state.arrayNodes.length;
-        this.state.arrayNodes = this.handleClick(nextNum, action);;
+        return <ul style={{ marginLeft: 5 }}> {result} </ul>
+    }
+
+    getArrayIds(nodes, outArr) {
+        for (const node of nodes) {
+            outArr.push(node.id);
+            if (node.nodes) {
+                this.getArrayIds(node.nodes, outArr);
+            }
+        }
+    }
+
+    generateId(arrIds) {
+        const newId = Math.floor((Math.random() * 60) + 1);
+        return arrIds.indexOf(newId) == -1 ? newId : this.generateId(arrIds);
     }
 
     render() {
@@ -77,26 +165,26 @@ class Panel extends React.Component {
                 </thead>
                 <tbody>
                     <tr>
-                        <td className="treeData" colSpan={4}>
-                            <div className="name" onClick={() => this.state.selectedItem = null}>
-                                {this.showNodes()}
-                            </div>
+                        <td colSpan={4}>
+                            <ul className="mainUl" onClick={(event) => { this.state.selectedItem = null; event.stopPropagation(); }}>
+                                {this.showNodes(this.state.jsonNodes)}
+                            </ul>
                         </td>
                     </tr>
                 </tbody>
                 <tfoot>
                     <tr className="underRow">
                         <td className="underRowData">
-                            <button onClick={() => this.editArrayNodes('add')}> Add </button>
+                            <button onClick={() => this.handleClick('add')}> Add </button>
                         </td>
                         <td className="underRowData">
-                            <button onClick={() => this.editArrayNodes('remove')}> Remove </button>
+                            <button onClick={() => this.handleClick('remove')}> Remove </button>
                         </td>
                         <td className="underRowData">
-                            <button onClick={() => this.editArrayNodes('edit')}> Edit </button>
+                            <button onClick={() => this.handleClick('edit')}> Edit </button>
                         </td>
                         <td className="underRowData">
-                            <button onClick={() => this.editArrayNodes('reset')}> Reset </button>
+                            <button onClick={() => this.handleClick('reset')}> Reset </button>
                         </td>
                     </tr>
                 </tfoot>

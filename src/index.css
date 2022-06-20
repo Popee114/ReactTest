@@ -19,14 +19,17 @@ table{
     border-bottom: 2px solid;
 }
 
-.treeData{
-    background-color: darkgrey;
-    height: 400px;
+ul{
     padding: 0;
 }
 
-.name{
+.mainUl{
     height: 400px;
+    margin: 0;
+}
+
+li{
+    list-style-type: none;
 }
 
 .underRow{
@@ -36,8 +39,4 @@ table{
 
 .underRowData{
     text-align: center;
-}
-
-p{
-    margin: 0;
 }
