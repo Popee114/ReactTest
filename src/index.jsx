@@ -81,7 +81,7 @@ class Panel extends React.Component {
         for (var element of nodes) {
             if (element.id == this.state.selectedItem) {
                 const index = nodes.indexOf(element);
-                delete nodes[index];
+                nodes.splice(index, 1);
                 return;
             }
 
